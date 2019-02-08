@@ -2,6 +2,9 @@
 #include <QQmlApplicationEngine>
 #include <QQmlContext>
 #include "backend.h"
+#include "statecallback.h"
+
+#include <qhttpserver.h>
 
 QString getBasePath(QString applicationDirPath)
 {
@@ -30,6 +33,7 @@ int main(int argc, char *argv[])
     engine.rootContext()->setContextProperty("basePath", basePath);
 
     qmlRegisterType<Backend>("io.qt.Backend", 1, 0, "Backend");
+    qmlRegisterType<StateCallback>("io.qt.StateCallback", 1, 0, "StateCallback");
 
     engine.load(QUrl(QStringLiteral("qrc:/main.qml")));
     if (engine.rootObjects().isEmpty()) { return -1; }

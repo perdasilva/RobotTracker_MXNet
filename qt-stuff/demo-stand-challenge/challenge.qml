@@ -297,6 +297,8 @@ Item {
     {
         btn_start.enabled = false;
         tm_sendFrame.start();
+
+        stateCallback.startTracking();
     }
 
     function stopChallenge()

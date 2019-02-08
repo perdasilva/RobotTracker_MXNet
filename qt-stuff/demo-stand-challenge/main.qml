@@ -4,6 +4,7 @@ import QtQuick.Layouts 1.12
 import QtQuick.Controls 2.12
 import QtQuick.VirtualKeyboard.Settings 2.2
 import io.qt.Backend 1.0
+import io.qt.StateCallback 1.0
 
 ApplicationWindow {
     id: root
@@ -40,6 +41,10 @@ ApplicationWindow {
         onCounterIncreased: {
             if (root.fpsCounters === true) { loader.item.currentFPSvalue_camera++; }
         }
+    }
+
+    StateCallback{
+        id: stateCallback
     }
 
     Binding {

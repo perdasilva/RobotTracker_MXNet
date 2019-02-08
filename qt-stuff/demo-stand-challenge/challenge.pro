@@ -15,7 +15,9 @@ DEFINES += QT_DEPRECATED_WARNINGS
 SOURCES += \
         main.cpp \
     backend.cpp \
-    videowrapper.cpp
+    videowrapper.cpp \
+    statecallback.cpp \
+    armstate.cpp
 
 RESOURCES += qml.qrc
 
@@ -32,4 +34,12 @@ else: unix:!android: target.path = /opt/$${TARGET}/bin
 
 HEADERS += \
     backend.h \
-    videowrapper.h
+    videowrapper.h \
+    statecallback.h \
+    armstate.h
+
+unix: LIBS += -L$$PWD/../qhttpserver/lib/ -lqhttpserver.0.1.0
+
+INCLUDEPATH += $$PWD/../qhttpserver
+INCLUDEPATH += /usr/local/include
+DEPENDPATH += $$PWD/../qhttpserver
