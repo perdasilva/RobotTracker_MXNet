@@ -10,10 +10,13 @@ let right_config = new tools.ArmConfig(...Object.values(config.arms.right))
 
 const express = require('express')
 const timeout = require('connect-timeout')
+const request = require('request')
+
 const app = express()
 app.use(timeout('1s'))
 const port = 3000
 
+let stateCallbackUrl = null
 
 const make_arm = (config) => {
     const arm = new tools.Arm(config);
@@ -22,6 +25,18 @@ const make_arm = (config) => {
     let ready = false
     arm.on('connection', () => ready = true)
     arm.init();
+
+    arm.on('position_change', function(state) {
+        if (stateCallbackUrl != null) {
+                request({
+                method: 'post',
+                url: stateCallbackUrl, 
+                json: state
+            }, function(err, resp, body) {
+                if(err) console.log(err)
+            })
+        }
+    })
 
     const failed_callback = (error) => {
         console.error(`${arm.config.name}: rosLib failed callback: ${error}`)
@@ -44,8 +59,8 @@ const make_arm = (config) => {
                 return
             }
 
-            const func = arm.ros[action]
-            func((result) => {
+            // const func = arm.ros['getTopics'].bind(this)
+            arm.ros[action]((result) => {
                 console.log(`${arm.config.name}: ${action}: ${result}`)
                 res.send(result)
             }, failed_callback)
@@ -60,15 +75,48 @@ const make_arm = (config) => {
                 return
             }
 
-            const func = arm.ros[action]
             const param = req.param('param')
-            func(param, (result) => {
+            arm.ros[action](param, (result) => {
                 console.log(`${arm.config.name}: ${action} (param: ${param}): ${result}`)
                 res.send(result)
             }, failed_callback)
         })
     }
+
+    app.get(`/${arm.config.name}/state`, (req, res) => {
+        if (not_ready(res)) {
+            return
+        }
+        res.send(arm.state)
+    })
+
+    app.post('/register', (req, res) => {
+        if (not_ready(res)) {
+            return
+        }
+        stateCallbackUrl = req.body.callback 
+        res.send('OK')
+    })
+
+    app.post('/deregister', (req, res) => {
+        if (not_ready(res)) {
+            return
+        }
+        stateCallbackUrl = null
+        res.send('OK')
+    })
+
+    app.post('/devnull', (req, res) => {
+        if (not_ready(res)) {
+            return
+        }
+        console.log('devnull')
+        console.log(req.body)
+        res.send('OK')
+    })
 }
+
+app.use(express.json())
 
 make_arm(left_config)
 make_arm(right_config)
